@@ -2,6 +2,11 @@
   "name": "crud-react-native-app",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "author": {
+    "name": "Josué Hernández",
+    "email": "joheca1998@outlook.com",
+    "url": "https://effortstack.com"
+  },
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
