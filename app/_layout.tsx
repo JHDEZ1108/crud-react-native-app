@@ -2,7 +2,7 @@ import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "@/context/ThemeProvider";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { View, StyleSheet, StatusBar } from "react-native";
 import { useFonts, Vazirmatn_300Light, Vazirmatn_400Regular, Vazirmatn_600SemiBold } from "@expo-google-fonts/vazirmatn";
 

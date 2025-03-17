@@ -5,15 +5,17 @@ import {
   Vazirmatn_600SemiBold 
 } from "@expo-google-fonts/vazirmatn";
 
-import { Text, View, TextInput, Pressable, FlatList, ActivityIndicator, StyleSheet } from "react-native";
+import { Text, View, TextInput, Pressable, ActivityIndicator, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import { useTheme } from "@/context/ThemeProvider"; 
 import ThemeToggle from "@/components/ThemeToggle"; 
 
 import Animated, { LinearTransition } from "react-native-reanimated";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { data } from "@/data/todos";
 
@@ -24,12 +26,48 @@ interface TodoItem {
 }
 
 export default function Index() {
-  // State to store todos, sorted by descending ID
-  const [todos, setTodos] = useState<TodoItem[]>(data.sort((a, b) => b.id - a.id));
+  // State to store todos
+  const [todos, setTodos] = useState<TodoItem[]>([]);
   const [text, setText] = useState<string>("");
 
   const { theme } = useTheme(); // Access theme context
   const styles = createStyles(theme); // Generate styles dynamically
+
+  // Load todos from AsyncStorage when the app starts
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const jsonValue = await AsyncStorage.getItem("TodoApp");
+        const storageTodos: TodoItem[] = jsonValue ? JSON.parse(jsonValue) : [];
+
+        if (storageTodos.length > 0) {
+          setTodos(storageTodos.sort((a, b) => b.id - a.id));
+        } else {
+          setTodos(data.sort((a, b) => b.id - a.id));
+        }
+      } catch (e) {
+        console.error("Error loading todos:", e);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Save todos to AsyncStorage whenever they change
+  useEffect(() => {
+    const storeData = async () => {
+      try {
+        const jsonValue = JSON.stringify(todos);
+        await AsyncStorage.setItem("TodoApp", jsonValue);
+      } catch (e) {
+        console.error("Error saving todos:", e);
+      }
+    };
+
+    if (todos.length > 0) {
+      storeData();
+    }
+  }, [todos]); // Runs only when `todos` changes
 
   // Load custom fonts
   const [fontsLoaded] = useFonts({
