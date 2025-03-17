@@ -13,6 +13,8 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme } from "@/context/ThemeProvider"; 
 import ThemeToggle from "@/components/ThemeToggle"; 
 
+import Animated, { LinearTransition } from "react-native-reanimated";
+
 import { data } from "@/data/todos";
 
 interface TodoItem {
@@ -102,11 +104,13 @@ export default function Index() {
       </View>
 
       {/* Display the list of todos */}
-      <FlatList
+      <Animated.FlatList
         data={todos}
         renderItem={renderItem}
         keyExtractor={(todo) => todo.id.toString()}
         contentContainerStyle={{ flexGrow: 1 }}
+        itemLayoutAnimation={LinearTransition}
+        keyboardDismissMode="on-drag"
       />
     </SafeAreaView>
   );
