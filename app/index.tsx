@@ -5,20 +5,28 @@ import {
   Vazirmatn_600SemiBold 
 } from "@expo-google-fonts/vazirmatn";
 
-import { Text, View, Pressable, ActivityIndicator, StyleSheet } from "react-native";
+import { 
+  Text, 
+  View, 
+  Pressable, 
+  ActivityIndicator, 
+  StyleSheet, 
+  SectionList 
+} from "react-native";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeProvider"; 
 import ThemeToggle from "@/components/ThemeToggle"; 
-import Animated, { LinearTransition } from "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { data } from "@/data/todos";
 import TodoOptions from "@/components/TodoOptions";
-import AddTodoModal from "@/components/AddTodoModal"; 
+import AddTodoModal from "@/components/AddTodoModal";
 
 interface TodoItem {
   id: number;
@@ -31,6 +39,10 @@ interface TodoItem {
 export default function Index() {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [modalVisible, setModalVisible] = useState(false); 
+  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
+    Pending: true,
+    Completed: true,
+  });
 
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -44,9 +56,9 @@ export default function Index() {
         const storageTodos: TodoItem[] = jsonValue ? JSON.parse(jsonValue) : [];
 
         if (storageTodos.length > 0) {
-          setTodos(storageTodos.sort((a, b) => b.id - a.id));
+          setTodos(sortTodos(storageTodos));
         } else {
-          setTodos(data.sort((a, b) => b.id - a.id));
+          setTodos(sortTodos(data));
         }
       } catch (e) {
         console.error("Error loading todos:", e);
@@ -83,43 +95,54 @@ export default function Index() {
   }, []);
   */
 
-  // **Load custom fonts**
-  const [fontsLoaded] = useFonts({
-    Vazirmatn_300Light,
-    Vazirmatn_400Regular,
-    Vazirmatn_600SemiBold,
-  });
-
-  if (!fontsLoaded) {
-    return <ActivityIndicator size="large" color={theme.primary} />;
-  }
+  // **Sort todos by date and time (earliest first)**
+  const sortTodos = (todos: TodoItem[]) => {
+    return [...todos].sort((a, b) => {
+      if (!a.date || !b.date) return 0; // Ignore items without dates
+      const dateA = new Date(`${a.date} ${a.time}`);
+      const dateB = new Date(`${b.date} ${b.time}`);
+      return dateA.getTime() - dateB.getTime();
+    });
+  };
 
   // **Function to add a new todo**
   const addTodo = (title: string, date?: string, time?: string): void => {
     if (title.trim()) {
       const newId = todos.length > 0 ? todos[0].id + 1 : 1;
-      setTodos([{ id: newId, title, completed: false, date, time }, ...todos]);
+      const newTodos = [{ id: newId, title, completed: false, date, time }, ...todos];
+      setTodos(sortTodos(newTodos));
     }
   };
 
   // **Function to toggle the completion status of a todo**
   const toggleTodo = (id: number): void => {
-    setTodos(
+    setTodos(sortTodos(
       todos.map((todo) =>
         todo.id === id ? { ...todo, completed: !todo.completed } : todo
       )
-    );
+    ));
   };
 
   // **Function to remove a todo by ID**
   const removeTodo = (id: number): void => {
-    setTodos(todos.filter((todo) => todo.id !== id));
+    setTodos(sortTodos(todos.filter((todo) => todo.id !== id)));
   };
 
   // **Function to navigate to the edit screen**
   const handlePress = (id: number) => {
     router.push({ pathname: "/todos/[id]", params: { id: id.toString() } });
   };
+
+  // **Toggle Section Expansion**
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  // **Prepare the sections for SectionList**
+  const sections = [
+    { title: "Pending", data: todos.filter(todo => !todo.completed) },
+    { title: "Completed", data: todos.filter(todo => todo.completed) },
+  ];
 
   // **Render a single todo item**
   const renderItem = ({ item }: { item: TodoItem }) => (
@@ -144,7 +167,7 @@ export default function Index() {
                 style={styles.dateIcon} 
               />
               <Text style={styles.todoDate}>{item.date}</Text>
-  
+
               {/* Time Icon */}
               <FontAwesome6 
                 name="clock" 
@@ -166,14 +189,12 @@ export default function Index() {
       />
     </View>
   );
-  
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header with ThemeToggle and Add Button */}
       <View style={styles.header}>
         <Text style={styles.headerText}>Todo List</Text>
         <View style={styles.headerIcons}>
-          {/* Open Modal to Add Todo */}
           <Pressable onPress={() => setModalVisible(true)}>
             <Ionicons name="add-circle" size={30} color={theme.primary} />
           </Pressable>
@@ -181,18 +202,31 @@ export default function Index() {
         </View>
       </View>
       
-      {/* Display the list of todos */}
-      <Animated.FlatList
-        data={todos}
-        renderItem={renderItem}
+      {/* Display the list of todos using SectionList */}
+      <SectionList
+        sections={sections}
         keyExtractor={(todo) => todo.id.toString()}
-        contentContainerStyle={{ flexGrow: 1 }}
-        itemLayoutAnimation={LinearTransition}
-        keyboardDismissMode="on-drag"
+        renderItem={({ item, section }) => 
+          expandedSections[section.title] ? renderItem({ item }) : null
+        }
+        renderSectionHeader={({ section }) => (
+          <Pressable onPress={() => toggleSection(section.title)} style={styles.sectionHeader}>
+            <Text style={styles.sectionHeaderText}>{section.title}</Text>
+            <MaterialIcons 
+              name={expandedSections[section.title] ? "expand-less" : "expand-more"} 
+              size={24} 
+              color={theme.text} 
+            />
+          </Pressable>
+        )}
       />
       
       {/* Add Todo Modal */}
-      <AddTodoModal visible={modalVisible} onClose={() => setModalVisible(false)} onAdd={addTodo} />
+      <AddTodoModal 
+        visible={modalVisible} 
+        onClose={() => setModalVisible(false)} 
+        onAdd={addTodo} 
+      />
     </SafeAreaView>
   );
 }
@@ -254,6 +288,22 @@ function createStyles(theme: any) {
       textDecorationLine: "line-through",
       fontFamily: "Vazirmatn_300Light",
       color: theme.icon,
+    },
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 10,
+      paddingHorizontal: 15,
+      backgroundColor: theme.headerBackground,
+      borderTopWidth: 1,
+      borderBottomWidth: 1,
+      borderColor: theme.border,
+    },
+    sectionHeaderText: {
+      fontSize: 18,
+      fontFamily: "Vazirmatn_600SemiBold",
+      color: theme.text,
     },
   });
 }
