@@ -115,10 +115,20 @@ export default function Index() {
 
   // Render a single todo item
   const renderItem = ({ item }: { item: TodoItem }) => (
-    <View style={styles.todoItem}>
+    <View 
+      style={[
+        styles.todoItem, 
+        { 
+          backgroundColor: item.completed 
+            ? theme.backgroundCompleted 
+            : theme.background 
+        }
+      ]}
+    >
       <Pressable 
         onPress={() => handlePress(item.id)}
-        onLongPress={() => toggleTodo(item.id)}>
+        onLongPress={() => toggleTodo(item.id)}
+      >
         <Text style={[styles.todoText, item.completed && styles.completedText]}>
           {item.title}
         </Text>
