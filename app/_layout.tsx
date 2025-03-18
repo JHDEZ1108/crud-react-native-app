@@ -33,8 +33,9 @@ function RootLayoutContent() {
     <SafeAreaProvider onLayout={onLayoutRootView}>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="todos/[id]" />
         </Stack>
       </View>
     </SafeAreaProvider>

@@ -10,6 +10,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
+import { useRouter } from "expo-router";
+
 import { useTheme } from "@/context/ThemeProvider"; 
 import ThemeToggle from "@/components/ThemeToggle"; 
 
@@ -32,6 +34,8 @@ export default function Index() {
 
   const { theme } = useTheme(); // Access theme context
   const styles = createStyles(theme); // Generate styles dynamically
+  
+  const router = useRouter();
 
   // Load todos from AsyncStorage when the app starts
   useEffect(() => {
@@ -103,16 +107,22 @@ export default function Index() {
   const removeTodo = (id: number): void => {
     setTodos(todos.filter((todo) => todo.id !== id));
   };
+  
+  const handlePress = (id: number) => {
+    router.push({ pathname: "/todos/[id]", params: { id: id.toString() } });
+  };
+  
 
   // Render a single todo item
   const renderItem = ({ item }: { item: TodoItem }) => (
     <View style={styles.todoItem}>
-      <Text
-        style={[styles.todoText, item.completed && styles.completedText]}
-        onPress={() => toggleTodo(item.id)}
-      >
-        {item.title}
-      </Text>
+      <Pressable 
+        onPress={() => handlePress(item.id)}
+        onLongPress={() => toggleTodo(item.id)}>
+        <Text style={[styles.todoText, item.completed && styles.completedText]}>
+          {item.title}
+        </Text>
+      </Pressable>
       <Pressable onPress={() => removeTodo(item.id)}>
         <MaterialCommunityIcons name="delete-circle" size={30} color={theme.primary} />
       </Pressable>
