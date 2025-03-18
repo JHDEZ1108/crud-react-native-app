@@ -8,18 +8,13 @@ import {
 import { Text, View, TextInput, Pressable, ActivityIndicator, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-
 import { useRouter } from "expo-router";
-
 import { useTheme } from "@/context/ThemeProvider"; 
 import ThemeToggle from "@/components/ThemeToggle"; 
-
 import Animated, { LinearTransition } from "react-native-reanimated";
-
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import { data } from "@/data/todos";
+import TodoOptions from "@/components/TodoOptions"; // Import the new component
 
 interface TodoItem {
   id: number;
@@ -32,9 +27,8 @@ export default function Index() {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [text, setText] = useState<string>("");
 
-  const { theme } = useTheme(); // Access theme context
-  const styles = createStyles(theme); // Generate styles dynamically
-  
+  const { theme } = useTheme();
+  const styles = createStyles(theme); 
   const router = useRouter();
 
   // Load todos from AsyncStorage when the app starts
@@ -71,7 +65,7 @@ export default function Index() {
     if (todos.length > 0) {
       storeData();
     }
-  }, [todos]); // Runs only when `todos` changes
+  }, [todos]);
 
   // Load custom fonts
   const [fontsLoaded] = useFonts({
@@ -80,7 +74,6 @@ export default function Index() {
     Vazirmatn_600SemiBold,
   });
 
-  // Show loading indicator if fonts are not loaded
   if (!fontsLoaded) {
     return <ActivityIndicator size="large" color={theme.primary} />;
   }
@@ -107,11 +100,11 @@ export default function Index() {
   const removeTodo = (id: number): void => {
     setTodos(todos.filter((todo) => todo.id !== id));
   };
-  
+
+  // Function to navigate to the edit screen
   const handlePress = (id: number) => {
     router.push({ pathname: "/todos/[id]", params: { id: id.toString() } });
   };
-  
 
   // Render a single todo item
   const renderItem = ({ item }: { item: TodoItem }) => (
@@ -133,9 +126,15 @@ export default function Index() {
           {item.title}
         </Text>
       </Pressable>
-      <Pressable onPress={() => removeTodo(item.id)}>
-        <MaterialCommunityIcons name="delete-circle" size={30} color={theme.primary} />
-      </Pressable>
+      
+      {/* Use TodoOptions component for actions */}
+      <TodoOptions 
+        id={item.id} 
+        completed={item.completed}
+        onDelete={removeTodo} 
+        onEdit={handlePress} 
+        onToggleComplete={toggleTodo} 
+      />
     </View>
   );
 
