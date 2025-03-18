@@ -5,16 +5,18 @@ import {
   Vazirmatn_600SemiBold 
 } from "@expo-google-fonts/vazirmatn";
 
-import { Text, View, TextInput, Pressable, ActivityIndicator, StyleSheet } from "react-native";
+import { Text, View, Pressable, ActivityIndicator, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeProvider"; 
 import ThemeToggle from "@/components/ThemeToggle"; 
 import Animated, { LinearTransition } from "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { data } from "@/data/todos";
-import TodoOptions from "@/components/TodoOptions"; // Import the new component
+import TodoOptions from "@/components/TodoOptions";
+import AddTodoModal from "@/components/AddTodoModal"; // Import the new modal
 
 interface TodoItem {
   id: number;
@@ -25,10 +27,10 @@ interface TodoItem {
 export default function Index() {
   // State to store todos
   const [todos, setTodos] = useState<TodoItem[]>([]);
-  const [text, setText] = useState<string>("");
+  const [modalVisible, setModalVisible] = useState(false); // Modal visibility state
 
   const { theme } = useTheme();
-  const styles = createStyles(theme); 
+  const styles = createStyles(theme);
   const router = useRouter();
 
   // Load todos from AsyncStorage when the app starts
@@ -79,11 +81,10 @@ export default function Index() {
   }
 
   // Function to add a new todo
-  const addTodo = (): void => {
-    if (text.trim()) {
+  const addTodo = (title: string): void => {
+    if (title.trim()) {
       const newId = todos.length > 0 ? todos[0].id + 1 : 1;
-      setTodos([{ id: newId, title: text, completed: false }, ...todos]);
-      setText("");
+      setTodos([{ id: newId, title, completed: false }, ...todos]);
     }
   };
 
@@ -126,8 +127,6 @@ export default function Index() {
           {item.title}
         </Text>
       </Pressable>
-      
-      {/* Use TodoOptions component for actions */}
       <TodoOptions 
         id={item.id} 
         completed={item.completed}
@@ -140,26 +139,18 @@ export default function Index() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header with ThemeToggle button */}
+      {/* Header with ThemeToggle and Add Button */}
       <View style={styles.header}>
         <Text style={styles.headerText}>Todo List</Text>
-        <ThemeToggle />
+        <View style={styles.headerIcons}>
+          {/* Open Modal to Add Todo */}
+          <Pressable onPress={() => setModalVisible(true)}>
+            <Ionicons name="add-circle" size={30} color={theme.primary} />
+          </Pressable>
+          <ThemeToggle />
+        </View>
       </View>
-
-      {/* Input section for adding new todos */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Add a new todo"
-          placeholderTextColor={theme.icon}
-          value={text}
-          onChangeText={setText}
-        />
-        <Pressable onPress={addTodo} style={styles.addButton}>
-          <Text style={styles.addButtonText}>Add</Text>
-        </Pressable>
-      </View>
-
+      
       {/* Display the list of todos */}
       <Animated.FlatList
         data={todos}
@@ -169,6 +160,9 @@ export default function Index() {
         itemLayoutAnimation={LinearTransition}
         keyboardDismissMode="on-drag"
       />
+      
+      {/* Add Todo Modal */}
+      <AddTodoModal visible={modalVisible} onClose={() => setModalVisible(false)} onAdd={addTodo} />
     </SafeAreaView>
   );
 }
@@ -191,37 +185,10 @@ function createStyles(theme: any) {
       fontFamily: "Vazirmatn_600SemiBold",
       color: theme.text,
     },
-    inputContainer: {
+    headerIcons: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: 10,
-      padding: 10,
-      width: "100%",
-      maxWidth: 1024,
-      marginHorizontal: "auto",
-    },
-    input: {
-      flex: 1,
-      borderWidth: 1,
-      borderRadius: 5,
-      padding: 10,
-      marginRight: 10,
-      fontSize: 18,
-      minWidth: 0,
-      fontFamily: "Vazirmatn_400Regular",
-      color: theme.text,
-      borderColor: theme.border,
-      backgroundColor: theme.headerBackground,
-    },
-    addButton: {
-      borderRadius: 5,
-      padding: 10,
-      backgroundColor: theme.primary,
-    },
-    addButtonText: {
-      fontSize: 18,
-      fontFamily: "Vazirmatn_600SemiBold",
-      color: theme.background,
+      gap: 15, // Adds spacing between add button and theme toggle
     },
     todoItem: {
       flexDirection: "row",
