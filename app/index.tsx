@@ -9,6 +9,8 @@ import { Text, View, Pressable, ActivityIndicator, StyleSheet } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import Feather from "@expo/vector-icons/Feather";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeProvider"; 
 import ThemeToggle from "@/components/ThemeToggle"; 
@@ -16,24 +18,25 @@ import Animated, { LinearTransition } from "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { data } from "@/data/todos";
 import TodoOptions from "@/components/TodoOptions";
-import AddTodoModal from "@/components/AddTodoModal"; // Import the new modal
+import AddTodoModal from "@/components/AddTodoModal"; 
 
 interface TodoItem {
   id: number;
   title: string;
   completed: boolean;
+  date?: string;
+  time?: string;
 }
 
 export default function Index() {
-  // State to store todos
   const [todos, setTodos] = useState<TodoItem[]>([]);
-  const [modalVisible, setModalVisible] = useState(false); // Modal visibility state
+  const [modalVisible, setModalVisible] = useState(false); 
 
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const router = useRouter();
 
-  // Load todos from AsyncStorage when the app starts
+  // **Load todos from AsyncStorage when the app starts**
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -53,7 +56,7 @@ export default function Index() {
     fetchData();
   }, []);
 
-  // Save todos to AsyncStorage whenever they change
+  // **Save todos to AsyncStorage whenever they change**
   useEffect(() => {
     const storeData = async () => {
       try {
@@ -69,7 +72,18 @@ export default function Index() {
     }
   }, [todos]);
 
-  // Load custom fonts
+  /*
+  // ** Uncomment this to clear AsyncStorage if data structure changes **
+  useEffect(() => {
+    const clearStorage = async () => {
+      await AsyncStorage.removeItem("TodoApp");
+      console.log("AsyncStorage cleared for data structure update.");
+    };
+    clearStorage();
+  }, []);
+  */
+
+  // **Load custom fonts**
   const [fontsLoaded] = useFonts({
     Vazirmatn_300Light,
     Vazirmatn_400Regular,
@@ -80,15 +94,15 @@ export default function Index() {
     return <ActivityIndicator size="large" color={theme.primary} />;
   }
 
-  // Function to add a new todo
-  const addTodo = (title: string): void => {
+  // **Function to add a new todo**
+  const addTodo = (title: string, date?: string, time?: string): void => {
     if (title.trim()) {
       const newId = todos.length > 0 ? todos[0].id + 1 : 1;
-      setTodos([{ id: newId, title, completed: false }, ...todos]);
+      setTodos([{ id: newId, title, completed: false, date, time }, ...todos]);
     }
   };
 
-  // Function to toggle the completion status of a todo
+  // **Function to toggle the completion status of a todo**
   const toggleTodo = (id: number): void => {
     setTodos(
       todos.map((todo) =>
@@ -97,35 +111,51 @@ export default function Index() {
     );
   };
 
-  // Function to remove a todo by ID
+  // **Function to remove a todo by ID**
   const removeTodo = (id: number): void => {
     setTodos(todos.filter((todo) => todo.id !== id));
   };
 
-  // Function to navigate to the edit screen
+  // **Function to navigate to the edit screen**
   const handlePress = (id: number) => {
     router.push({ pathname: "/todos/[id]", params: { id: id.toString() } });
   };
 
-  // Render a single todo item
+  // **Render a single todo item**
   const renderItem = ({ item }: { item: TodoItem }) => (
     <View 
       style={[
         styles.todoItem, 
-        { 
-          backgroundColor: item.completed 
-            ? theme.backgroundCompleted 
-            : theme.background 
-        }
+        { backgroundColor: item.completed ? theme.backgroundCompleted : theme.background }
       ]}
     >
-      <Pressable 
-        onPress={() => handlePress(item.id)}
-        onLongPress={() => toggleTodo(item.id)}
-      >
-        <Text style={[styles.todoText, item.completed && styles.completedText]}>
-          {item.title}
-        </Text>
+      <Pressable onPress={() => handlePress(item.id)} onLongPress={() => toggleTodo(item.id)}>
+        <View>
+          <Text style={[styles.todoText, item.completed && styles.completedText]}>
+            {item.title}
+          </Text>
+          {item.date && item.time && (
+            <View style={styles.dateContainer}>
+              {/* Date Icon */}
+              <Feather 
+                name="calendar" 
+                size={16} 
+                color={item.completed ? theme.icon : theme.primary} 
+                style={styles.dateIcon} 
+              />
+              <Text style={styles.todoDate}>{item.date}</Text>
+  
+              {/* Time Icon */}
+              <FontAwesome6 
+                name="clock" 
+                size={16} 
+                color={item.completed ? theme.icon : theme.primary} 
+                style={styles.timeIcon} 
+              />
+              <Text style={styles.todoDate}>{item.time}</Text>
+            </View>
+          )}
+        </View>
       </Pressable>
       <TodoOptions 
         id={item.id} 
@@ -136,7 +166,7 @@ export default function Index() {
       />
     </View>
   );
-
+  
   return (
     <SafeAreaView style={styles.container}>
       {/* Header with ThemeToggle and Add Button */}
@@ -188,7 +218,7 @@ function createStyles(theme: any) {
     headerIcons: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 15, // Adds spacing between add button and theme toggle
+      gap: 15, 
     },
     todoItem: {
       flexDirection: "row",
@@ -199,10 +229,26 @@ function createStyles(theme: any) {
       borderBottomColor: theme.border,
     },
     todoText: {
-      flex: 1,
       fontSize: 18,
       fontFamily: "Vazirmatn_400Regular",
       color: theme.text,
+    },
+    dateContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 4,
+      gap: 5, 
+    },
+    dateIcon: {
+      marginRight: 5,
+    },
+    timeIcon: {
+      marginLeft: 15, 
+    },
+    todoDate: {
+      fontSize: 14,
+      fontFamily: "Vazirmatn_300Light",
+      color: theme.gray,
     },
     completedText: {
       textDecorationLine: "line-through",
