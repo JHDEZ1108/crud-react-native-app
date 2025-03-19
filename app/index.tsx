@@ -87,15 +87,35 @@ export default function Index() {
   }, []);
   */
 
+  // Helper function to convert 12-hour format to 24-hour format
+  function convertTo24Hour(time: any) {
+    let [hours, minutes] = time.match(/(\d+):(\d+)/).slice(1);
+    const modifier = time.match(/AM|PM/i)[0];
+    
+    if (modifier.toUpperCase() === 'PM' && hours !== '12') {
+      hours = parseInt(hours, 10) + 12;
+    } else if (modifier.toUpperCase() === 'AM' && hours === '12') {
+      hours = '00';
+    }
+  
+    return `${hours}:${minutes}`;
+  }
+  
   // **Sort todos by date and time (earliest first)**
   const sortTodos = (todos: TodoItem[]) => {
-    return [...todos].sort((a, b) => {
-      if (!a.date || !b.date) return 0; // Ignore items without dates
-      const dateA = new Date(`${a.date} ${a.time}`);
-      const dateB = new Date(`${b.date} ${b.time}`);
-      return dateA.getTime() - dateB.getTime();
+    return todos.sort((a, b) => {
+      if (a.date && b.date && a.time && b.time) {
+        const timeA = convertTo24Hour(a.time);
+        const timeB = convertTo24Hour(b.time);
+        const dateTimeA = new Date(`${a.date}T${timeA}:00`);
+        const dateTimeB = new Date(`${b.date}T${timeB}:00`);
+        
+        return dateTimeA.getTime() - dateTimeB.getTime();
+      }
+      return 0;
     });
   };
+
 
   // **Function to add a new todo**
   const addTodo = (title: string, date?: string, time?: string): void => {
