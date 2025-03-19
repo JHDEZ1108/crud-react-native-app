@@ -88,18 +88,38 @@ export default function Index() {
   */
 
   // Helper function to convert 12-hour format to 24-hour format
-  function convertTo24Hour(time: any) {
-    let [hours, minutes] = time.match(/(\d+):(\d+)/).slice(1);
-    const modifier = time.match(/AM|PM/i)[0];
-    
-    if (modifier.toUpperCase() === 'PM' && hours !== '12') {
-      hours = parseInt(hours, 10) + 12;
-    } else if (modifier.toUpperCase() === 'AM' && hours === '12') {
-      hours = '00';
-    }
+  function convertTo24Hour(time: string): string {
+    let [hours, minutes] = time.match(/(\d+):(\d+)/)?.slice(1) || ['0', '00'];
+    const modifier = time.match(/AM|PM/i)?.[0] || 'AM';
   
-    return `${hours}:${minutes}`;
+    if (modifier.toUpperCase() === 'PM' && hours !== '12') {
+      hours = (parseInt(hours, 10) + 12).toString(); // Convert to number, add 12, then convert back to string
+    } else if (modifier.toUpperCase() === 'AM' && hours === '12') {
+      hours = '00'; // Reset midnight hour to '00'
+    }
+    
+    const convertedTime = `${hours}:${minutes}`;
+    return convertedTime;
   }
+  
+  // Helper to determine if the date and/or time has passed
+  const hasPassed = (todoDate: string, todoTime: string): { datePassed: boolean, timePassed: boolean } => {
+    const now = new Date();
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0); // Set current date with time reset to midnight.
+  
+    const todoDateOnly = new Date(todoDate);
+    todoDateOnly.setHours(0, 0, 0, 0); // Reset todo date to midnight for date comparison.
+  
+    const todoDateTime = new Date(`${todoDate}T${convertTo24Hour(todoTime)}:00`);
+    const datePassed = currentDate > todoDateOnly;
+    const timePassed = now > todoDateTime; // Compare now with the exact time of todo.
+  
+    return {
+      datePassed,
+      timePassed,
+    };
+  };
   
   // **Sort todos by date and time (earliest first)**
   const sortTodos = (todos: TodoItem[]) => {
@@ -115,7 +135,6 @@ export default function Index() {
       return 0;
     });
   };
-
 
   // **Function to add a new todo**
   const addTodo = (title: string, date?: string, time?: string): void => {
@@ -159,50 +178,59 @@ export default function Index() {
   ];
 
   // **Render a single todo item**
-  const renderItem = ({ item }: { item: TodoItem }) => (
-    <View 
-      style={[
-        styles.todoItem, 
+  const renderItem = ({ item }: { item: TodoItem }) => {
+    const { datePassed, timePassed } = item.date && item.time ? hasPassed(item.date, item.time) : { datePassed: false, timePassed: false };
+  
+    // Define color for icons based on completion and date/time passed
+    const calendarColor = item.completed ? theme.icon : (datePassed ? theme.red : theme.primary);
+    const clockColor = item.completed ? theme.icon : (timePassed ? theme.red : (datePassed ? theme.red : theme.primary));
+  
+    return (
+      <View style={[
+        styles.todoItem,
         { backgroundColor: item.completed ? theme.backgroundCompleted : theme.background }
-      ]}
-    >
-      <Pressable onPress={() => handlePress(item.id)} onLongPress={() => toggleTodo(item.id)}>
-        <View>
-          <Text style={[styles.todoText, item.completed && styles.completedText]}>
-            {item.title}
-          </Text>
-          {item.date && item.time && (
-            <View style={styles.dateContainer}>
-              {/* Date Icon */}
-              <Feather 
-                name="calendar" 
-                size={16} 
-                color={item.completed ? theme.icon : theme.primary} 
-                style={styles.dateIcon} 
-              />
-              <Text style={styles.todoDate}>{item.date}</Text>
+      ]}>
+        <Pressable onPress={() => handlePress(item.id)} onLongPress={() => toggleTodo(item.id)}>
+          <View>
+            <Text style={[styles.todoText, item.completed && styles.completedText]}>
+              {item.title}
+            </Text>
+            {item.date && item.time && (
+              <View style={styles.dateContainer}>
+                {/* Date Icon */}
+                <Feather
+                  name="calendar"
+                  size={16}
+                  color={calendarColor}
+                  style={styles.dateIcon}
+                />
+                <Text style={styles.todoDate}>{item.date}</Text>
+  
+                {/* Time Icon */}
+                <FontAwesome6
+                  name="clock"
+                  size={16}
+                  color={clockColor}
+                  style={styles.timeIcon}
+                />
+                <Text style={styles.todoDate}>{item.time}</Text>
+              </View>
+            )}
+          </View>
+        </Pressable>
+        <TodoOptions
+          id={item.id}
+          completed={item.completed}
+          onDelete={removeTodo}
+          onEdit={handlePress}
+          onToggleComplete={toggleTodo}
+        />
+      </View>
+    );
+  };
 
-              {/* Time Icon */}
-              <FontAwesome6 
-                name="clock" 
-                size={16} 
-                color={item.completed ? theme.icon : theme.primary} 
-                style={styles.timeIcon} 
-              />
-              <Text style={styles.todoDate}>{item.time}</Text>
-            </View>
-          )}
-        </View>
-      </Pressable>
-      <TodoOptions 
-        id={item.id} 
-        completed={item.completed}
-        onDelete={removeTodo} 
-        onEdit={handlePress} 
-        onToggleComplete={toggleTodo} 
-      />
-    </View>
-  );
+  
+
 
   return (
     <SafeAreaView style={styles.container}>
