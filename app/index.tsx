@@ -1,15 +1,7 @@
 import { 
-  useFonts, 
-  Vazirmatn_300Light, 
-  Vazirmatn_400Regular, 
-  Vazirmatn_600SemiBold 
-} from "@expo-google-fonts/vazirmatn";
-
-import { 
   Text, 
   View, 
   Pressable, 
-  ActivityIndicator, 
   StyleSheet, 
   SectionList 
 } from "react-native";
@@ -229,7 +221,7 @@ export default function Index() {
       />
     </SafeAreaView>
   );
-}
+} 
 
 // **Styles function that adapts to the theme**
 function createStyles(theme: any) {

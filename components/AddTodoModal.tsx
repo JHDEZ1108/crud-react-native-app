@@ -1,22 +1,34 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Pressable, Modal, StyleSheet } from "react-native";
+import { View, Text, TextInput, Pressable, Modal, StyleSheet, Platform } from "react-native";
 import { useTheme } from "@/context/ThemeProvider";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import Feather from "@expo/vector-icons/Feather";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 interface AddTodoModalProps {
   visible: boolean;
   onClose: () => void;
-  onAdd: (title: string) => void;
+  onAdd: (title: string, date: string, time: string) => void;
 }
 
 const AddTodoModal: React.FC<AddTodoModalProps> = ({ visible, onClose, onAdd }) => {
   const { theme } = useTheme();
-  const [text, setText] = useState("");
   const styles = getStyles(theme);
+
+  const [text, setText] = useState("");
+  const [date, setDate] = useState<Date>(new Date());
+  const [time, setTime] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const handleAdd = () => {
     if (text.trim()) {
-      onAdd(text);
+      const formattedDate = date.toISOString().split("T")[0]; // YYYY-MM-DD
+      const formattedTime = time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); // HH:mm
+      onAdd(text, formattedDate, formattedTime);
       setText("");
+      setDate(new Date());
+      setTime(new Date());
       onClose();
     }
   };
@@ -25,8 +37,9 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({ visible, onClose, onAdd }) 
     <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.modalOverlay} onPress={onClose}>
         <View style={styles.modalContainer}>
-          {/* Input Field */}
           <Text style={styles.modalTitle}>Add New Todo</Text>
+
+          {/* Input Field */}
           <TextInput
             style={styles.input}
             placeholder="Enter todo"
@@ -35,12 +48,60 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({ visible, onClose, onAdd }) 
             onChangeText={setText}
           />
 
+          {/* Date Picker */}
+          <Pressable onPress={() => setShowDatePicker(true)} style={styles.dateContainer}>
+            <Feather name="calendar" size={18} color={theme.primary} />
+            <Text style={styles.todoDate}>
+              {date.toISOString().split("T")[0]}
+            </Text>
+          </Pressable>
+
+          {showDatePicker && (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(event, selectedDate) => {
+                setShowDatePicker(false);
+                if (selectedDate) {
+                  setDate(selectedDate);
+                }
+              }}
+            />
+          )}
+
+          {/* Time Picker */}
+          <Pressable onPress={() => setShowTimePicker(true)} style={styles.dateContainer}>
+            <FontAwesome6 name="clock" size={18} color={theme.primary} />
+            <Text style={styles.todoDate}>
+              {time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </Text>
+          </Pressable>
+
+          {showTimePicker && (
+            <DateTimePicker
+              value={time}
+              mode="time"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={(event, selectedTime) => {
+                setShowTimePicker(false);
+                if (selectedTime) {
+                  setTime(selectedTime);
+                }
+              }}
+            />
+          )}
+
           {/* Buttons */}
           <View style={styles.buttonContainer}>
             <Pressable style={styles.cancelButton} onPress={onClose}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </Pressable>
-            <Pressable style={styles.addButton} onPress={handleAdd}>
+            <Pressable
+              style={[styles.addButton, !text.trim() ? styles.disabledButton : {}]}
+              onPress={handleAdd}
+              disabled={!text.trim()}
+            >
               <Text style={styles.addButtonText}>Add</Text>
             </Pressable>
           </View>
@@ -63,7 +124,7 @@ const getStyles = (theme: any) =>
       borderTopLeftRadius: 15,
       borderTopRightRadius: 15,
       padding: 20,
-      minHeight: 180,
+      minHeight: 250,
       backgroundColor: theme.headerBackground,
     },
     modalTitle: {
@@ -84,13 +145,24 @@ const getStyles = (theme: any) =>
       backgroundColor: theme.background,
       marginBottom: 15,
     },
+    dateContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 10,
+    },
+    todoDate: {
+      marginLeft: 10,
+      fontSize: 16,
+      color: theme.text,
+    },
     buttonContainer: {
       flexDirection: "row",
       justifyContent: "space-between",
+      marginTop: 10,
     },
     cancelButton: {
-      paddingVertical: 8, 
-      paddingHorizontal: 30, 
+      paddingVertical: 8,
+      paddingHorizontal: 30,
       borderRadius: 5,
       borderWidth: 2,
       borderColor: theme.text,
@@ -101,15 +173,18 @@ const getStyles = (theme: any) =>
       color: theme.text,
     },
     addButton: {
-      paddingVertical: 8, 
-      paddingHorizontal: 30, 
-      borderRadius: 5, 
+      paddingVertical: 8,
+      paddingHorizontal: 30,
+      borderRadius: 5,
       backgroundColor: theme.primary,
     },
     addButtonText: {
       fontSize: 16,
       fontWeight: "bold",
       color: "white",
+    },
+    disabledButton: {
+      backgroundColor: theme.border,
     },
   });
 
