@@ -100,8 +100,10 @@ export default function Index() {
   // **Function to add a new todo**
   const addTodo = (title: string, date?: string, time?: string): void => {
     if (title.trim()) {
-      const newId = todos.length > 0 ? todos[0].id + 1 : 1;
-      const newTodos = [{ id: newId, title, completed: false, date, time }, ...todos];
+      // Find the highest ID and add 1 to avoid duplicates
+      const newId = todos.length > 0 ? Math.max(...todos.map(todo => todo.id)) + 1 : 1;
+      
+      const newTodos = [...todos, { id: newId, title, completed: false, date, time }];
       setTodos(sortTodos(newTodos));
     }
   };
@@ -197,7 +199,7 @@ export default function Index() {
       {/* Display the list of todos using SectionList */}
       <SectionList
         sections={sections}
-        keyExtractor={(todo) => todo.id.toString()}
+        keyExtractor={(todo) => `${todo.id}-${todo.title}`} // Unique key to avoid duplicates.
         renderItem={({ item, section }) => 
           expandedSections[section.title] ? renderItem({ item }) : null
         }
