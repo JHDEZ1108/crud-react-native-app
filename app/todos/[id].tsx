@@ -73,7 +73,11 @@ export default function EditScreen() {
     if (selectedTime) {
       setTime(selectedTime);
       if (todo) {
-        const formattedTime = `${selectedTime.getHours()}:${selectedTime.getMinutes().toString().padStart(2, '0')}`;
+        const formattedTime = selectedTime.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        });
         setTodo({ ...todo, time: formattedTime });
       }
     }
@@ -107,6 +111,7 @@ export default function EditScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>Edit Todo</Text>
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Todo Title:</Text>
         <TextInput
@@ -119,9 +124,9 @@ export default function EditScreen() {
       </View>
 
       <View style={styles.datePickerContainer}>
+        <Text style={styles.label}>Change Date:</Text>
         <Feather name="calendar" size={24} color={theme.primary} />
         <Pressable onPress={() => setShowDatePicker(true)} style={styles.dateInfoContainer}>
-          <Text style={styles.label}>Change Date:</Text>
           <Text style={styles.todoDate}>
             {date.toISOString().split("T")[0]}
           </Text>
@@ -137,9 +142,9 @@ export default function EditScreen() {
       </View>
 
       <View style={styles.datePickerContainer}>
+        <Text style={styles.label}>Change Time:</Text>
         <FontAwesome6 name="clock" size={24} color={theme.primary} />
         <Pressable onPress={() => setShowTimePicker(true)} style={styles.dateInfoContainer}>
-          <Text style={styles.label}>Change Time:</Text>
           <Text style={styles.todoDate}>
             {time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </Text>
@@ -172,6 +177,13 @@ const getStyles = (theme: any) => StyleSheet.create({
     paddingTop: 60,
     padding: 20,
     backgroundColor: theme.background,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: theme.text,
+    textAlign: 'center',
+    marginBottom: 20,
   },
   inputContainer: {
     marginBottom: 20,
