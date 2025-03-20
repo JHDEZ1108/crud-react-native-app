@@ -53,6 +53,3 @@ This will open a web page where you can choose to run the app on an Android emul
 
 - **Real-time Notifications**: The app will soon incorporate real-time notifications for todos approaching their deadline, ensuring you never miss out on important tasks.
 
-## Demo
-
-You can view a live demo of the app [here](#).
