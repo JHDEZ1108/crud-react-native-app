@@ -51,4 +51,4 @@ This will open a web page where you can choose to run the app on an Android emul
 
 ## Demo
 
-You can view a live demo of the app [here](#). (Link to be added after deployment)
+You can view a live demo of the app [here](#).
