@@ -1,50 +1,54 @@
-# Welcome to your Expo app 👋
+# Todo List App in React Native
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is a fully functional todo list application developed in React Native. It supports creating, editing, and deleting todo items, with a sleek user interface that supports both dark mode and light mode. This app leverages React Native's capabilities to provide a smooth and responsive user experience.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Custom Components**: Utilizes custom components for various UI elements like todo items and modals.
+- **Dark Mode and Light Mode**: Supports theming with an easy toggle between dark and light modes.
+- **Custom Hooks**: Includes custom hooks for managing notifications using a Toast component, enhancing the interactive feedback for user actions.
+- **Todo Management**: Allows users to manage their tasks with options to add, edit, and delete todos.
+- **Notifications**: Implements phone notifications to alert users about upcoming todo deadlines, providing timely reminders.
 
-   ```bash
-   npm install
-   ```
+## Getting Started
 
-2. Start the app
+### Prerequisites
 
-   ```bash
-    npx expo start
-   ```
+Ensure you have [Node.js](https://nodejs.org/) installed and [Expo CLI](https://expo.io/) set up on your development machine. 
 
-In the output, you'll find options to open the app in a
+### Cloning the Repository
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Clone the repository using Git:
 
 ```bash
-npm run reset-project
+git clone git@github.com:JHDEZ1108/crud-react-native-app.git
+cd crud-react-native-app
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Installing Dependencies
 
-## Learn more
+Install the necessary dependencies by running:
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npm install
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Or if you prefer using Yarn:
 
-## Join the community
+```bash
+yarn install
+```
 
-Join our community of developers creating universal apps.
+### Running the App
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Start the development server with Expo:
+
+```bash
+npx expo start
+```
+
+This will open a web page where you can choose to run the app on an Android emulator, iOS simulator, or your physical device using the QR code.
+
+## Demo
+
+You can view a live demo of the app [here](#). (Link to be added after deployment)
