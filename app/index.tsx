@@ -20,6 +20,8 @@ import { data } from "@/data/todos";
 import TodoOptions from "@/components/TodoOptions";
 import AddTodoModal from "@/components/AddTodoModal";
 
+import { useNotification } from "@/context/NotificationContext";
+
 interface TodoItem {
   id: number;
   title: string;
@@ -39,6 +41,7 @@ export default function Index() {
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const router = useRouter();
+  const { showMessage } = useNotification();
 
   // **Load todos from AsyncStorage when the app starts**
   useEffect(() => {
@@ -149,11 +152,15 @@ export default function Index() {
 
   // **Function to toggle the completion status of a todo**
   const toggleTodo = (id: number): void => {
-    setTodos(sortTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    ));
+    const newTodos = todos.map((todo) => {
+      if (todo.id === id) {
+        const newState = !todo.completed;
+        showMessage(newState ? "Todo marked as done!" : "Todo marked as not done!"); // Muestra el mensaje adecuado
+        return { ...todo, completed: newState };
+      }
+      return todo;
+    });
+    setTodos(sortTodos(newTodos));
   };
 
   // **Function to remove a todo by ID**

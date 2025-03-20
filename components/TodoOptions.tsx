@@ -4,6 +4,7 @@ import Feather from "@expo/vector-icons/Feather";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme } from "@/context/ThemeProvider";
+import { useNotification } from "@/context/NotificationContext";
 
 interface TodoOptionsProps {
   id: number;
@@ -19,15 +20,19 @@ const TodoOptions: React.FC<TodoOptionsProps> = ({ id, completed, onDelete, onEd
   const [visible, setVisible] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  const { showMessage } = useNotification();
+
   // Handle delete confirmation
   const handleDelete = () => {
     setShowDeleteModal(false);
     setTimeout(() => onDelete(id), 300);
+    showMessage("Todo deleted successfully!");
   };
 
   // Handle toggle completion with smooth close
   const handleToggleComplete = () => {
     onToggleComplete(id);
+    showMessage(completed ? "Todo marked as not done!" : "Todo marked as done!");
     setTimeout(() => setVisible(false), 300);
   };
 

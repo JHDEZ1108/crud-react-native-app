@@ -14,6 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import { useNotification } from "@/context/NotificationContext";
 
 interface TodoItem {
   id: number;
@@ -33,6 +34,8 @@ export default function EditScreen() {
   const { theme } = useTheme();
   const router = useRouter();
   const styles = getStyles(theme);
+  
+  const { showMessage } = useNotification();
 
   useEffect(() => {
     const fetchData = async (todoId: string) => {
@@ -92,6 +95,7 @@ export default function EditScreen() {
           t.id === todo.id ? todo : t
         );
         await AsyncStorage.setItem("TodoApp", JSON.stringify(updatedTodos));
+        showMessage("Todo updated successfully!");
         router.push("/");
       } catch (e) {
         console.error("Error saving todo:", e);

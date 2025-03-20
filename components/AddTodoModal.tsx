@@ -4,6 +4,7 @@ import { useTheme } from "@/context/ThemeProvider";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import { useNotification } from "@/context/NotificationContext";
 
 interface AddTodoModalProps {
   visible: boolean;
@@ -14,6 +15,7 @@ interface AddTodoModalProps {
 const AddTodoModal: React.FC<AddTodoModalProps> = ({ visible, onClose, onAdd }) => {
   const { theme } = useTheme();
   const styles = getStyles(theme);
+  const { showMessage } = useNotification();
 
   const [text, setText] = useState("");
   const [date, setDate] = useState<Date>(new Date());
@@ -26,6 +28,7 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({ visible, onClose, onAdd }) 
       const formattedDate = date.toISOString().split("T")[0]; // YYYY-MM-DD
       const formattedTime = time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); // HH:mm
       onAdd(text, formattedDate, formattedTime);
+      showMessage('Todo added successfully!');
       setText("");
       setDate(new Date());
       setTime(new Date());

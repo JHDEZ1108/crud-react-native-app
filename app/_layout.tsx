@@ -5,6 +5,8 @@ import * as SplashScreen from "expo-splash-screen";
 import { useCallback } from "react";
 import { View, StyleSheet, StatusBar } from "react-native";
 import { useFonts, Vazirmatn_300Light, Vazirmatn_400Regular, Vazirmatn_600SemiBold } from "@expo-google-fonts/vazirmatn";
+import { NotificationProvider } from "@/context/NotificationContext";
+import Toast from "@/components/Toast";
 
 // Prevent the splash screen from hiding automatically
 SplashScreen.preventAutoHideAsync();
@@ -41,6 +43,7 @@ function RootLayoutContent() {
           <Stack.Screen name="index" />
           <Stack.Screen name="todos/[id]" />
         </Stack>
+        <Toast />
       </View>
     </SafeAreaProvider>
   );
@@ -48,9 +51,11 @@ function RootLayoutContent() {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <RootLayoutContent />
-    </ThemeProvider>
+    <NotificationProvider>
+      <ThemeProvider>
+        <RootLayoutContent />
+      </ThemeProvider>
+    </NotificationProvider>
   );
 }
 
