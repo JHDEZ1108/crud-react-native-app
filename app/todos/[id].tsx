@@ -1,46 +1,52 @@
+import React, { useState, useEffect } from "react";
+import {
+  Text,
+  View,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  Platform,
+  SafeAreaView
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { View, Text, StyleSheet, Pressable, TextInput, ActivityIndicator } from "react-native";
-import { useState, useEffect } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/context/ThemeProvider";
-import { StatusBar } from "expo-status-bar";
-import { 
-  useFonts, 
-  Vazirmatn_300Light, 
-  Vazirmatn_400Regular, 
-  Vazirmatn_600SemiBold 
-} from "@expo-google-fonts/vazirmatn";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import Feather from "@expo/vector-icons/Feather";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 interface TodoItem {
   id: number;
   title: string;
   completed: boolean;
+  date: string;
+  time: string;
 }
 
 export default function EditScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>(); // Get the todo ID from the URL params
+  const { id } = useLocalSearchParams<{ id: string }>();
   const [todo, setTodo] = useState<TodoItem | null>(null);
-  const { theme } = useTheme(); // Access theme context
-  const router = useRouter(); // Navigation hook
+  const [date, setDate] = useState(new Date());
+  const [time, setTime] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const { theme } = useTheme();
+  const router = useRouter();
+  const styles = getStyles(theme);
 
-  // Load custom fonts
-  const [fontsLoaded] = useFonts({
-    Vazirmatn_300Light, 
-    Vazirmatn_400Regular, 
-    Vazirmatn_600SemiBold 
-  });
-
-  // Fetch the selected todo from AsyncStorage
   useEffect(() => {
     const fetchData = async (todoId: string) => {
       try {
         const jsonValue = await AsyncStorage.getItem("TodoApp");
         const storageTodos: TodoItem[] = jsonValue ? JSON.parse(jsonValue) : [];
-
-        if (storageTodos.length) {
-          const myTodo = storageTodos.find((t) => t.id.toString() === todoId);
-          if (myTodo) setTodo(myTodo);
+        const myTodo = storageTodos.find((t) => t.id.toString() === todoId);
+        if (myTodo) {
+          setTodo(myTodo);
+          setDate(new Date(myTodo.date));
+          const [hours, minutes] = myTodo.time.split(':');
+          const timeCopy = new Date();
+          timeCopy.setHours(parseInt(hours), parseInt(minutes), 0);
+          setTime(timeCopy);
         }
       } catch (e) {
         console.error("Error fetching todo:", e);
@@ -52,111 +58,173 @@ export default function EditScreen() {
     }
   }, [id]);
 
-  // Show loading indicator while fonts are loading
-  if (!fontsLoaded) {
-    return <ActivityIndicator size="large" color={theme.primary} />;
-  }
+  const onChangeDate = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setDate(selectedDate);
+      if (todo) {
+        setTodo({ ...todo, date: selectedDate.toISOString().split('T')[0] });
+      }
+    }
+  };
 
-  // Show a message if the todo is not found
+  const onChangeTime = (event: any, selectedTime?: Date) => {
+    setShowTimePicker(false);
+    if (selectedTime) {
+      setTime(selectedTime);
+      if (todo) {
+        const formattedTime = `${selectedTime.getHours()}:${selectedTime.getMinutes().toString().padStart(2, '0')}`;
+        setTodo({ ...todo, time: formattedTime });
+      }
+    }
+  };
+
+  const handleSave = async () => {
+    if (todo) {
+      try {
+        const jsonValue = await AsyncStorage.getItem("TodoApp");
+        const storageTodos: TodoItem[] = jsonValue ? JSON.parse(jsonValue) : [];
+        const updatedTodos = storageTodos.map((t) =>
+          t.id === todo.id ? todo : t
+        );
+        await AsyncStorage.setItem("TodoApp", JSON.stringify(updatedTodos));
+        router.push("/");
+      } catch (e) {
+        console.error("Error saving todo:", e);
+      }
+    }
+  };
+
   if (!todo) {
     return (
-      <SafeAreaView style={styles(theme).container}>
-        <Text style={{ color: theme.text, textAlign: "center", marginTop: 20 }}>
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.textCenter}>
           Todo not found
         </Text>
       </SafeAreaView>
     );
   }
 
-  // Save the updated todo to AsyncStorage
-  const handleSave = async () => {
-    try {
-      const savedTodo = { ...todo, title: todo.title };
-
-      const jsonValue = await AsyncStorage.getItem("TodoApp");
-      const storageTodos: TodoItem[] = jsonValue ? JSON.parse(jsonValue) : [];
-
-      const updatedTodos = storageTodos.map((t) =>
-        t.id === savedTodo.id ? savedTodo : t
-      );
-
-      await AsyncStorage.setItem("TodoApp", JSON.stringify(updatedTodos));
-
-      router.push("/"); // Navigate back to the home screen
-    } catch (e) {
-      console.error("Error saving todo:", e);
-    }
-  };
-
   return (
-    <SafeAreaView style={styles(theme).container}>
-      {/* Todo title input */}
-      <View style={styles(theme).inputContainer}>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Todo Title:</Text>
         <TextInput
-          style={styles(theme).input}
-          maxLength={30}
-          placeholder="Edit todo"
+          style={styles.input}
+          placeholder="Edit Todo Title"
           placeholderTextColor={theme.icon}
-          value={todo?.title || ""}
-          onChangeText={(text) => setTodo((prev) => (prev ? { ...prev, title: text } : null))}
+          value={todo.title}
+          onChangeText={(text) => setTodo(prev => prev ? { ...prev, title: text } : null)}
         />
       </View>
 
-      {/* Save and Cancel buttons */}
-      <View style={styles(theme).inputContainer}>
-        <Pressable onPress={handleSave} style={styles(theme).saveButton}>
-          <Text style={styles(theme).saveButtonText}>Save</Text>
+      <View style={styles.datePickerContainer}>
+        <Feather name="calendar" size={24} color={theme.primary} />
+        <Pressable onPress={() => setShowDatePicker(true)} style={styles.dateInfoContainer}>
+          <Text style={styles.label}>Change Date:</Text>
+          <Text style={styles.todoDate}>
+            {date.toISOString().split("T")[0]}
+          </Text>
         </Pressable>
-        <Pressable
-          onPress={() => router.push("/")}
-          style={[styles(theme).saveButton, { backgroundColor: "red" }]}
-        >
-          <Text style={[styles(theme).saveButtonText, { color: "white" }]}>Cancel</Text>
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={onChangeDate}
+          />
+        )}
+      </View>
+
+      <View style={styles.datePickerContainer}>
+        <FontAwesome6 name="clock" size={24} color={theme.primary} />
+        <Pressable onPress={() => setShowTimePicker(true)} style={styles.dateInfoContainer}>
+          <Text style={styles.label}>Change Time:</Text>
+          <Text style={styles.todoDate}>
+            {time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </Text>
+        </Pressable>
+        {showTimePicker && (
+          <DateTimePicker
+            value={time}
+            mode="time"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={onChangeTime}
+          />
+        )}
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Pressable onPress={handleSave} style={styles.saveButton}>
+          <Text style={styles.buttonText}>Save</Text>
+        </Pressable>
+        <Pressable onPress={() => router.push("/")} style={[styles.saveButton, { backgroundColor: "red" }]}>
+          <Text style={[styles.buttonText, { color: "white" }]}>Cancel</Text>
         </Pressable>
       </View>
-      
-      <StatusBar style="auto" />
     </SafeAreaView>
   );
 }
 
-// **Styles function that adapts to the theme**
-const styles = (theme: any) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      width: "100%",
-      backgroundColor: theme.background,
-    },
-    inputContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: 10,
-      gap: 6,
-      width: "100%",
-      maxWidth: 1024,
-      marginHorizontal: "auto",
-      pointerEvents: "auto",
-    },
-    input: {
-      flex: 1,
-      borderColor: theme.border,
-      borderWidth: 1,
-      borderRadius: 5,
-      padding: 10,
-      marginRight: 10,
-      fontSize: 18,
-      fontFamily: "Vazirmatn_400Regular",
-      minWidth: 0,
-      color: theme.text,
-    },
-    saveButton: {
-      backgroundColor: theme.primary,
-      borderRadius: 5,
-      padding: 10,
-    },
-    saveButtonText: {
-      fontSize: 18,
-      color: theme.text,
-    },
-  });
+const getStyles = (theme: any) => StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingTop: 60,
+    padding: 20,
+    backgroundColor: theme.background,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  datePickerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  dateInfoContainer: {
+    marginLeft: 10,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: theme.text,
+    marginBottom: 2
+  },
+  input: {
+    borderColor: theme.border,
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
+    fontSize: 18,
+    color: theme.text,
+  },
+  todoDate: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: theme.text,
+  },
+  saveButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 30,
+    borderRadius: 5,
+    backgroundColor: theme.primary,
+    alignItems: "center",
+    marginHorizontal: 5,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "white",
+  },
+  textCenter: {
+    color: theme.text,
+    textAlign: "center",
+    marginTop: 20,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+});
