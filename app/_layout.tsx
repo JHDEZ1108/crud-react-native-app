@@ -10,7 +10,7 @@ import { useFonts, Vazirmatn_300Light, Vazirmatn_400Regular, Vazirmatn_600SemiBo
 SplashScreen.preventAutoHideAsync();
 
 function RootLayoutContent() {
-  const { theme } = useTheme(); // Access theme context
+  const { theme, isDark } = useTheme(); // Access theme context
   const [fontsLoaded] = useFonts({
     Vazirmatn_300Light,
     Vazirmatn_400Regular,
@@ -31,7 +31,11 @@ function RootLayoutContent() {
 
   return (
     <SafeAreaProvider onLayout={onLayoutRootView}>
-      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+      <StatusBar 
+        translucent 
+        backgroundColor="transparent" 
+        barStyle={isDark ? "light-content" : "dark-content"} // Change based on theme
+      />
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />

@@ -7,6 +7,7 @@ import { Colors } from "@/constants/Colors";
 interface ThemeContextType {
   theme: typeof Colors.light | typeof Colors.dark;
   toggleTheme: () => void;
+  isDark: boolean;
 }
 
 // Create theme context with default value
@@ -41,9 +42,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   };
 
   const theme = themeMode === "dark" ? Colors.dark : Colors.light;
+  const isDark = themeMode === "dark";  // Esto facilita la comprobación del tema oscuro en componentes
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, isDark }}>
       {children}
     </ThemeContext.Provider>
   );
