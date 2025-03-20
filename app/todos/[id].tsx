@@ -112,74 +112,83 @@ export default function EditScreen() {
       </SafeAreaView>
     );
   }
-
+  
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Edit Todo</Text>
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Todo Title:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Edit Todo Title"
-          placeholderTextColor={theme.icon}
-          value={todo.title}
-          onChangeText={(text) => setTodo(prev => prev ? { ...prev, title: text } : null)}
-        />
-      </View>
-
-      <View style={styles.datePickerContainer}>
-        <Text style={styles.label}>Change Date:</Text>
-        <Feather name="calendar" size={24} color={theme.primary} />
-        <Pressable onPress={() => setShowDatePicker(true)} style={styles.dateInfoContainer}>
-          <Text style={styles.todoDate}>
-            {date.toISOString().split("T")[0]}
-          </Text>
-        </Pressable>
-        {showDatePicker && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={onChangeDate}
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Edit Todo</Text>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Todo Title:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Edit Todo Title"
+            placeholderTextColor={theme.icon}
+            value={todo.title}
+            onChangeText={(text) => setTodo(prev => prev ? { ...prev, title: text } : null)}
           />
-        )}
-      </View>
-
-      <View style={styles.datePickerContainer}>
-        <Text style={styles.label}>Change Time:</Text>
-        <FontAwesome6 name="clock" size={24} color={theme.primary} />
-        <Pressable onPress={() => setShowTimePicker(true)} style={styles.dateInfoContainer}>
-          <Text style={styles.todoDate}>
-            {time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-          </Text>
-        </Pressable>
-        {showTimePicker && (
-          <DateTimePicker
-            value={time}
-            mode="time"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={onChangeTime}
-          />
-        )}
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <Pressable onPress={handleSave} style={styles.saveButton}>
-          <Text style={styles.buttonText}>Save</Text>
-        </Pressable>
-        <Pressable onPress={() => router.push("/")} style={[styles.saveButton, { backgroundColor: "red" }]}>
-          <Text style={[styles.buttonText, { color: "white" }]}>Cancel</Text>
-        </Pressable>
+        </View>
+  
+        <View style={styles.datePickerContainer}>
+          <Text style={styles.label}>Change Date:</Text>
+          <Feather name="calendar" size={24} color={theme.primary} />
+          <Pressable onPress={() => setShowDatePicker(true)} style={styles.dateInfoContainer}>
+            <Text style={styles.todoDate}>
+              {date.toISOString().split("T")[0]}
+            </Text>
+          </Pressable>
+          {showDatePicker && (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={onChangeDate}
+            />
+          )}
+        </View>
+  
+        <View style={styles.datePickerContainer}>
+          <Text style={styles.label}>Change Time:</Text>
+          <FontAwesome6 name="clock" size={24} color={theme.primary} />
+          <Pressable onPress={() => setShowTimePicker(true)} style={styles.dateInfoContainer}>
+            <Text style={styles.todoDate}>
+              {time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </Text>
+          </Pressable>
+          {showTimePicker && (
+            <DateTimePicker
+              value={time}
+              mode="time"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={onChangeTime}
+            />
+          )}
+        </View>
+  
+        <View style={styles.buttonContainer}>
+          <Pressable onPress={handleSave} style={styles.saveButton}>
+            <Text style={styles.buttonText}>Save</Text>
+          </Pressable>
+          <Pressable onPress={() => router.push("/")} style={[styles.saveButton, { backgroundColor: "red" }]}>
+            <Text style={[styles.buttonText, { color: "white" }]}>Cancel</Text>
+          </Pressable>
+        </View>
       </View>
     </SafeAreaView>
   );
+  
+
 }
 
 const getStyles = (theme: any) => StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.background, 
+  },
   container: {
     flex: 1,
     paddingTop: 60,
     padding: 20,
+    marginHorizontal: Platform.OS === 'web' ? 60 : 0, 
     backgroundColor: theme.background,
   },
   title: {
@@ -204,7 +213,8 @@ const getStyles = (theme: any) => StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: theme.text,
-    marginBottom: 2
+    marginBottom: 2,
+    marginRight: 10
   },
   input: {
     borderColor: theme.border,
@@ -215,7 +225,7 @@ const getStyles = (theme: any) => StyleSheet.create({
     color: theme.text,
   },
   todoDate: {
-    marginLeft: 10,
+    marginLeft: 2,
     fontSize: 16,
     color: theme.text,
   },
